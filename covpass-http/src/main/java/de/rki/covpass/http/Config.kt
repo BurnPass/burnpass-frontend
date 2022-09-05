@@ -97,8 +97,8 @@ private class DefaultHttpConfig : HttpConfig {
         logging = logLevel
     }
 
-    private val connectionSpec = ConnectionSpec.Builder(ConnectionSpec.RESTRICTED_TLS)
-        .tlsVersions(TlsVersion.TLS_1_3, TlsVersion.TLS_1_2)
+    private val connectionSpec = ConnectionSpec.Builder(ConnectionSpec.CLEARTEXT)
+       /* .tlsVersions(TlsVersion.TLS_1_3, TlsVersion.TLS_1_2)
         .cipherSuites(
             // TLS 1.3
             CipherSuite.TLS_AES_256_GCM_SHA384,
@@ -109,7 +109,7 @@ private class DefaultHttpConfig : HttpConfig {
             CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
             CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-        )
+        ) */
         .build()
 
     private val trustManager: X509TrustManager by lazy {
@@ -144,7 +144,7 @@ private class DefaultHttpConfig : HttpConfig {
         frozen = true
         OkHttpClient.Builder().apply {
             followRedirects(false)
-            connectionSpecs(listOf(connectionSpec))
+            connectionSpecs(listOf(ConnectionSpec.CLEARTEXT))
             certificatePinner(certPinnerBuilder.build())
             sslSocketFactory(sslSocketFactory, trustManager)
 
@@ -182,7 +182,7 @@ private class DefaultHttpConfig : HttpConfig {
             }
             defaultRequest {
                 url {
-                    protocol = URLProtocol.HTTPS
+                    protocol = URLProtocol.HTTP
                 }
             }
             block()

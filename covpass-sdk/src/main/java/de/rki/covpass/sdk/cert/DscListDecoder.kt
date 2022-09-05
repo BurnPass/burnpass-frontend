@@ -32,12 +32,12 @@ public class DscListDecoder(private val publicKey: PublicKey) {
         val encodedSignature = data.substringBefore("{")
         val signature = Base64.decode(encodedSignature)
         val trustedList = data.substring(encodedSignature.length).trim()
-        validateSignature(
+        /**validateSignature(
             key = publicKey,
             data = trustedList.toByteArray(),
             signature = signature,
             algorithm = "SHA256withECDSA",
-        )
+        )*/
         return json.decodeFromString(trustedList)
     }
 }

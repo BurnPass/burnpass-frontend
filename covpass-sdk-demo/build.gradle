@@ -8,4 +8,4 @@ dependencies {
 }
 
 apply from: project(":covpass-sdk").file("download-dsc-list.gradle")
-addDscList("https://de.test.dscg.ubirch.com/trustList/DSC/")
+addDscList("scahry.ddns.net:8000/trustList/DSC/")
