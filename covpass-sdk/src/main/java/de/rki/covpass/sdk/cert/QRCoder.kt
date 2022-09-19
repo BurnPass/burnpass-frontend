@@ -16,6 +16,11 @@ import de.rki.covpass.sdk.utils.Zlib
 import kotlinx.serialization.decodeFromString
 import java.io.IOException
 import java.security.GeneralSecurityException
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Period.between
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 /**
  * Used to encode/decode QR code string.
@@ -24,7 +29,19 @@ public class QRCoder(private val validator: CertValidator) {
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
     internal fun decodeRawCose(qr: String): ByteArray {
-        val qrContent = qr.removePrefix("HC1:").toByteArray()
+        val current = LocalDateTime.now()
+        val index = qr.indexOf("_")
+        var qrtime=""
+        var qr_ohne_zeit=qr
+        if (index!=-1)
+            {qrtime = qr.substring(0,index)
+              val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                val time = LocalDateTime.parse(qrtime, formatter)
+                val diff = ChronoUnit.SECONDS.between(current, time)
+                println("Time difference: " + (diff))
+                qr_ohne_zeit = qr.substring(index + 1)}
+
+        val qrContent = qr_ohne_zeit.removePrefix("HC1:").toByteArray()
         try {
             return Zlib.decompress(Base45.decode(qrContent))
         } catch (e: IOException) {

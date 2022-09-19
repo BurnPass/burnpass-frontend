@@ -64,6 +64,7 @@ public abstract class BaseHookedFragment(@LayoutRes contentLayoutId: Int = 0) :
         }
     }
 
+
     public open fun withErrorReporting(block: () -> Unit) {
         withErrorReporting(::onError) {
             block()

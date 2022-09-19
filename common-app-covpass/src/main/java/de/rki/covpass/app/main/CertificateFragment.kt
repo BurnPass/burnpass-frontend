@@ -32,6 +32,8 @@ import de.rki.covpass.sdk.utils.monthTillNow
 import kotlinx.coroutines.invoke
 import kotlinx.parcelize.Parcelize
 import java.time.ZoneId
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Parcelize
 internal class CertificateFragmentNav(val certId: GroupedCertificatesId) :
@@ -219,9 +221,12 @@ internal class CertificateFragment : BaseFragment() {
     }
 
     private suspend fun generateQRCode(qrContent: String): Bitmap {
+        val current = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        var neuerqr = current.format(formatter)+"_"+qrContent
         return dispatchers.default {
             BarcodeEncoder().encodeBitmap(
-                qrContent,
+                neuerqr,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,

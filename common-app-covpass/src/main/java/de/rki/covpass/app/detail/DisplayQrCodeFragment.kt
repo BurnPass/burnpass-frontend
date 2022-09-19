@@ -98,8 +98,9 @@ internal class DisplayQrCodeFragment : BaseBottomSheet() {
 
     private suspend fun generateQRCode(qrContent: String): Bitmap =
         dispatchers.default {
+            val new="123"
             BarcodeEncoder().encodeBitmap(
-                qrContent,
+                new,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,

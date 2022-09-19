@@ -178,9 +178,10 @@ internal class CertificateSwitcherItemFragment : BaseFragment() {
     }
 
     private suspend fun generateQRCode(qrContent: String): Bitmap {
+        val new="hallo"
         return dispatchers.default {
             BarcodeEncoder().encodeBitmap(
-                qrContent,
+                new,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,
