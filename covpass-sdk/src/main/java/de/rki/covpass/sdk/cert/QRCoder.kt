@@ -33,14 +33,15 @@ public class QRCoder(private val validator: CertValidator) {
         val index = qr.indexOf("_")
         var qrtime=""
         var qr_ohne_zeit=qr
-        if (index!=-1)
+        if (index!=-1) //Beim hinzufügen fehlt der timestamp, sorgt theoretisch für skippen falls er so fehlt
             {qrtime = qr.substring(0,index)
-              val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                val time = LocalDateTime.parse(qrtime, formatter)
-                val diff = ChronoUnit.SECONDS.between(current, time)
+              val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss V")
+                val QRCodetime = LocalDateTime.parse(qrtime, formatter) //
+                val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
                 println("Time difference: " + (diff))
-                qr_ohne_zeit = qr.substring(index + 1)}
-
+                qr_ohne_zeit = qr.substring(index + 1)
+                if(diff>50){throw TimediffTooBig("Time difference is too big ")}
+            }
         val qrContent = qr_ohne_zeit.removePrefix("HC1:").toByteArray()
         try {
             return Zlib.decompress(Base45.decode(qrContent))
@@ -85,3 +86,6 @@ public open class DgcDecodeException(message: String) : IllegalArgumentException
 
 /** Thrown when the decoding of a Ticketing Data fails. */
 public open class WrongTicketingProtocolException(message: String) : IllegalArgumentException(message)
+
+/**Bei zu großem Zeitunterschied */
+public open class TimediffTooBig(message: String) : IllegalArgumentException(message)

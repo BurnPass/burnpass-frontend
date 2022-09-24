@@ -5,8 +5,8 @@
   -->
 
 <resources>
-  <string name="trust_service_host">192.168.178.23:8000</string>
+  <string name="trust_service_host">172.18.220.216:8000</string>
   <string name="revocation_list_service_host">de.crl.dscg.ubirch.com</string>
   <string name="reissue_service_host">api.reissue.ubirch.com</string>
-  <string name="dcc_booster_rules_host">192.168.178.23:8000</string>
+  <string name="dcc_booster_rules_host">172.18.220.216:8000</string>
 </resources>

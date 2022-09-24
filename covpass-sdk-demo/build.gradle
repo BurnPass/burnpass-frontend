@@ -8,4 +8,4 @@ dependencies {
 }
 
 apply from: project(":covpass-sdk").file("download-dsc-list.gradle")
-addDscList("http://192.168.178.23:8000/trustList/DSC/")
+addDscList("http://172.18.220.216:8000/trustList/DSC/")
