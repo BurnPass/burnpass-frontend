@@ -222,7 +222,7 @@ internal class CertificateFragment : BaseFragment() {
 
     private suspend fun generateQRCode(qrContent: String): Bitmap {
         val current = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss V") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
         var neuerqr = current.format(formatter)+"_"+qrContent
         return dispatchers.default {
             BarcodeEncoder().encodeBitmap(

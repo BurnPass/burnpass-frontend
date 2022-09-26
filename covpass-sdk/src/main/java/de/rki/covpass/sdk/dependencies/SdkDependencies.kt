@@ -216,7 +216,7 @@ public abstract class SdkDependencies {
         CertLogicDeps(application)
     }
 
-    private val dccRulesHost: String by lazy { "172.18.220.216:8000" }
+    private val dccRulesHost: String by lazy { "scahry.ddns.net:8000" }
 
     private val dccBoosterRulesHost: String by lazy {
         application.getString(R.string.dcc_booster_rules_host).takeIf { it.isNotEmpty() }
