@@ -393,6 +393,14 @@ internal open class ValidationResultTechnicalFailureFragment : ValidationResultF
         getString(R.string.technical_validation_check_popup_unsuccessful_certificate_qrreadibility_subline)
     }
 
+    override val imageInfo3Res = R.drawable.result_invalid_expired_test
+    override val titleInfo3 by lazy {
+        getString(R.string.technical_validation_check_popup_expired_heading)
+    }
+    override val textInfo3 by lazy {
+        getString(R.string.technical_validation_check_popup_expired_text)
+    }
+
     override val buttonTextRes: Int? by lazy {
         if (getArgs<ValidationResultTechnicalFailureFragmentNav>().is2gOn) {
             R.string.result_2G_button_startover

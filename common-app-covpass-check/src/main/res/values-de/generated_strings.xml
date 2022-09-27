@@ -116,6 +116,8 @@
 	<string name="technical_validation_check_popup_unsuccessful_certificate_qrreadibility_subheading">QR-Code nicht lesbar</string>
 	<string name="technical_validation_check_popup_unsuccessful_certificate_qrreadibility_subline">Der QR-Code ist nicht lesbar. Bitte aktualisieren Sie die CovPassCheck-App, wenn dieses Problem häufiger auftritt.</string>
 	<string name="technical_validation_check_popup_valid_vaccination_button_title">Weiteres Zertifikat scannen</string>
+  <string name="technical_validation_check_popup_expired_heading">QR-Code abgelaufen.</string>
+  <string name="technical_validation_check_popup_expired_text">Der Zeitpunkt seit Erstellung des QR-Codes ist zu zu lang her.</string>
 	<string name="functional_validation_check_popup_unsuccessful_certificate_title">Zertifikat erfüllt nicht alle Bedingungen</string>
 	<string name="functional_validation_check_popup_unsuccessful_certificate_subline">Die geprüfte Person kann den Grund z. B. in der CovPass-App einsehen. Die häufigsten Gründe:</string>
 	<string name="functional_validation_check_popup_unsuccessful_certificate_subheadline_expiration">Abgelaufener Test</string>
