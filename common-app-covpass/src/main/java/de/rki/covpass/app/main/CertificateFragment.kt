@@ -32,7 +32,7 @@ import de.rki.covpass.sdk.utils.monthTillNow
 import kotlinx.coroutines.invoke
 import kotlinx.parcelize.Parcelize
 import java.time.ZoneId
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @Parcelize
@@ -67,7 +67,7 @@ internal class CertificateFragment : BaseFragment() {
         val certStatus = mainCombinedCertificate.status
         val isFavoriteButtonVisible = certificateList.certificates.size > 1
 
-        launchWhenStarted {
+        EveryXSecond {
             binding.certificateCard.qrCodeImage = if (mainCombinedCertificate.isRevoked) {
                 generateQRCode(REVOKED_QRCODE)
             } else {
@@ -221,8 +221,8 @@ internal class CertificateFragment : BaseFragment() {
     }
 
     private suspend fun generateQRCode(qrContent: String): Bitmap {
-        val current = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
+        val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
         var neuerqr = current.format(formatter)+"_"+qrContent
         return dispatchers.default {
             BarcodeEncoder().encodeBitmap(

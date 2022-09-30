@@ -16,9 +16,7 @@ import de.rki.covpass.sdk.utils.Zlib
 import kotlinx.serialization.decodeFromString
 import java.io.IOException
 import java.security.GeneralSecurityException
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Period.between
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -29,14 +27,14 @@ public class QRCoder(private val validator: CertValidator) {
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
     internal fun decodeRawCose(qr: String): ByteArray {
-        val current = LocalDateTime.now()
+        val current = ZonedDateTime.now()
         val index = qr.indexOf("_")
         var qrtime=""
         var qr_ohne_zeit=qr
         if (index!=-1) //Beim hinzufügen fehlt der timestamp, sorgt theoretisch für skippen falls er so fehlt
             {qrtime = qr.substring(0,index)
-              val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                val QRCodetime = LocalDateTime.parse(qrtime, formatter) //
+              val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
+                val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
                 val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
                 println("Time difference: " + (diff))
                 qr_ohne_zeit = qr.substring(index + 1)

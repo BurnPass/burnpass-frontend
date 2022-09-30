@@ -14,10 +14,14 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ensody.reactivestate.MutableValueFlow
 import com.ensody.reactivestate.withErrorReporting
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** Base class that comes with hook support. */
 public abstract class BaseHookedFragment(@LayoutRes contentLayoutId: Int = 0) :
@@ -60,6 +64,19 @@ public abstract class BaseHookedFragment(@LayoutRes contentLayoutId: Int = 0) :
         lifecycleScope.launchWhenStarted {
             withErrorReporting(::onError) {
                 block()
+            }
+        }
+    }
+
+    public open fun EveryXSecond(block: suspend CoroutineScope.() -> Unit) {
+        lifecycleScope.launch {
+            withErrorReporting(::onError) {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    while (true) {
+                        block()
+                        delay(10000) //do the task every 10 seconds
+                    }
+                }
             }
         }
     }

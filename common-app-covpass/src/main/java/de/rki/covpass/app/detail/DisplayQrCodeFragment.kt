@@ -29,6 +29,8 @@ import de.rki.covpass.sdk.cert.models.CovCertificate
 import de.rki.covpass.sdk.cert.models.GroupedCertificatesList
 import kotlinx.coroutines.invoke
 import kotlinx.parcelize.Parcelize
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @Parcelize
 internal class DisplayQrCodeFragmentNav(val certId: String) : FragmentNav(DisplayQrCodeFragment::class)
@@ -85,7 +87,7 @@ internal class DisplayQrCodeFragment : BaseBottomSheet() {
 
     private fun updateViews(certificateList: GroupedCertificatesList) {
         val cert = certificateList.getCombinedCertificate(args.certId) ?: return
-        launchWhenStarted {
+        EveryXSecond {
             binding.displayQrImageview.setImageBitmap(
                 generateQRCode(cert.qrContent)
             )
@@ -98,9 +100,11 @@ internal class DisplayQrCodeFragment : BaseBottomSheet() {
 
     private suspend fun generateQRCode(qrContent: String): Bitmap =
         dispatchers.default {
-            val new="123"
+            val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
+            var neuerqr = current.format(formatter)+"_"+qrContent
             BarcodeEncoder().encodeBitmap(
-                new,
+                neuerqr,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,
