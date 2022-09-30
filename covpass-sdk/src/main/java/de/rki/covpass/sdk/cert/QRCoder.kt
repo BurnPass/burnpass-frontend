@@ -31,7 +31,7 @@ public class QRCoder(private val validator: CertValidator) {
         val index = qr.indexOf("_")
         var qrtime=""
         var qr_ohne_zeit=qr
-        if (index!=-1) //Beim hinzufügen fehlt der timestamp, sorgt theoretisch für skippen falls er so fehlt
+        if (index!=-1) //Beim hinzufügen fehlt der timestamp, sorgt fürs skippen falls er fehlt
             {qrtime = qr.substring(0,index)
               val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
                 val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
