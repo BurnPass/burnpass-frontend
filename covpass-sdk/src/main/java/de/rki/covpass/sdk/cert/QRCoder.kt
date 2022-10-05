@@ -26,20 +26,27 @@ import java.time.temporal.ChronoUnit
 public class QRCoder(private val validator: CertValidator) {
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
-    internal fun decodeRawCose(qr: String): ByteArray {
+    internal fun decodeRawCose(qr: String, is_covpass: Boolean = false): ByteArray {
         val current = ZonedDateTime.now()
         val index = qr.indexOf("_")
-        var qrtime=""
-        var qr_ohne_zeit=qr
-        if (index!=-1) //Beim hinzufügen fehlt der timestamp, sorgt fürs skippen falls er fehlt
-            {qrtime = qr.substring(0,index)
-              val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
-                val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
-                val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
-                println("Time difference: " + (diff))
-                qr_ohne_zeit = qr.substring(index + 1)
-                if(diff>50){throw TimediffTooBig("Time difference is too big ")}
+        var qrtime = ""
+        var qr_ohne_zeit = qr
+        if (index != -1) //Beim hinzufügen fehlt der timestamp, sorgt fürs skippen falls er fehlt
+        {
+            qrtime = qr.substring(0, index)
+            if (is_covpass) {
+                println("Covpass App not allowed to add timed certificates")
+                throw IllegalArgumentException("Covpass App not allowed to add timed certificates")
             }
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
+            val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
+            val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
+            println("Time difference: " + (diff))
+            qr_ohne_zeit = qr.substring(index + 1)
+            if (diff > 50) {
+                throw TimediffTooBig("Time difference is too big ")
+            }
+        }
         val qrContent = qr_ohne_zeit.removePrefix("HC1:").toByteArray()
         try {
             return Zlib.decompress(Base45.decode(qrContent))
@@ -48,8 +55,8 @@ public class QRCoder(private val validator: CertValidator) {
         }
     }
 
-    public fun decodeCose(qr: String): Sign1Message =
-        Sign1Message.DecodeFromBytes(decodeRawCose(qr)) as? Sign1Message
+    public fun decodeCose(qr: String, is_covpass: Boolean = false): Sign1Message =
+        Sign1Message.DecodeFromBytes(decodeRawCose(qr, is_covpass)) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
 
     /**
@@ -62,9 +69,10 @@ public class QRCoder(private val validator: CertValidator) {
      */
     public fun decodeCovCert(
         qrContent: String,
-        allowExpiredCertificates: Boolean = false
+        allowExpiredCertificates: Boolean = false,
+        is_covpass: Boolean = false,
     ): CovCertificate =
-        validator.decodeAndValidate(decodeCose(qrContent), allowExpiredCertificates)
+        validator.decodeAndValidate(decodeCose(qrContent, is_covpass), allowExpiredCertificates)
 
     public fun validateTicketing(qrContent: String): TicketingDataInitialization {
         val ticketingData = defaultJson.decodeFromString<TicketingDataInitialization>(qrContent)
