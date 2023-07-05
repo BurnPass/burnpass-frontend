@@ -5,7 +5,7 @@ An folgenden Stellen wurde die IP/DNS des Servers eingetragen
 
 * covpass-sdk-demo/src/main/res/values/strings.xml (for DSA)
 * covpass-sdk-demo/build.gradle (for DSC)
-* covpass-sdk/src/main/java/de/rki/covpass/sdk/dependencies/SdkDependencies.kt (zeile 219)
+* covpass-sdk/src/main/java/de/rki/covpass/sdk/dependencies/SdkDependencies.kt (for dcc rules, zeile 219, dccRulesHost)
 
 Ob die unteren beiden wirklich nötig sind, wurde nicht getestet.
 # android-covpass-app
