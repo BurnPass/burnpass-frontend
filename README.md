@@ -1,4 +1,4 @@
-# PG anmerkungen
+# PG/BA Anmerkungen
 Die IP/DNS-Adresse muss in der App geändert werden.
 Geändert und genutzt wurde nur die demo version, jedoch könnte man die gleichen Datein in der nicht-Demo Version auch genauso ändern.
 An folgenden Stellen wurde die IP/DNS des Servers eingetragen
@@ -8,6 +8,9 @@ An folgenden Stellen wurde die IP/DNS des Servers eingetragen
 * covpass-sdk/src/main/java/de/rki/covpass/sdk/dependencies/SdkDependencies.kt (for dcc rules, zeile 219, dccRulesHost)
 
 Ob die unteren beiden wirklich nötig sind, wurde nicht getestet.
+
+Die neuste Version von Android Studio funktioniert vermutlich aufgrund des Kotlin plugins nicht, mit der "Chipmunk" version funktioniert es.
+
 # android-covpass-app
 
 This repo contains the CovPass app and commonly needed modules for Kotlin + Android.
