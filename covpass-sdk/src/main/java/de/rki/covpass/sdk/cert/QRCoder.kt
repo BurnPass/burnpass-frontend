@@ -23,31 +23,58 @@ import java.time.temporal.ChronoUnit
 /**
  * Used to encode/decode QR code string.
  */
+
 public class QRCoder(private val validator: CertValidator) {
+
+    internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
+        if (!qr.startsWith("PV:")) {
+            //Bei fehlender private value kann der QR-Code nicht eingelesen werden
+            println("Missing private value")
+            throw IllegalArgumentException("Missing private value, is the correct QR-Code being scanned?")
+        }
+        val index_bp = qr.indexOf("BP")
+        var private_value = qr.substring(0, index_bp)
+        private_value = private_value.substring(3)
+        val cose = qr.substring(index_bp)
+        //val private_value_int = private_value.toInt()
+        return Pair(cose,private_value)
+    }
+
+    internal fun decodeQRStringcheck(qr: String): String {
+        val current = ZonedDateTime.now()
+        val index = qr.indexOf("_")
+        if (index == -1) //Fehlt der Timestamp, wird das Zertifikat abgelehnt
+        {
+            println("Timestamp missing, Certificated denied")
+            throw IllegalArgumentException("Timestamp missing, Certificated denied")
+        }
+        val qrtime = qr.substring(0, index)
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
+        val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
+        val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
+        println("Time difference: " + (diff))
+        val qr_ohne_zeit = qr.substring(index + 1)
+        if (diff > 50) {
+            throw TimediffTooBig("Time difference is too big ")
+        }
+        println("checker decoder success")
+        println(qr_ohne_zeit)
+        return qr_ohne_zeit
+    }
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
     internal fun decodeRawCose(qr: String, is_covpass: Boolean = false): ByteArray {
-        val current = ZonedDateTime.now()
-        val index = qr.indexOf("_")
-        var qrtime = ""
-        var qr_ohne_zeit = qr
-        if (index != -1) //Beim hinzufügen fehlt der timestamp, sorgt fürs skippen falls er fehlt
-        {
-            qrtime = qr.substring(0, index)
-            if (is_covpass) {
-                println("Covpass App not allowed to add timed certificates")
-                throw IllegalArgumentException("Covpass App not allowed to add timed certificates")
-            }
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
-            val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
-            val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
-            println("Time difference: " + (diff))
-            qr_ohne_zeit = qr.substring(index + 1)
-            if (diff > 50) {
-                throw TimediffTooBig("Time difference is too big ")
-            }
+        var cose: String
+        var privatevalue: String
+        if (is_covpass) {
+            val pair = decodeQRStringcovpass(qr)
+            cose = pair.first
+            privatevalue = pair.second
+        } else {
+            cose = decodeQRStringcheck(qr)
         }
-        val qrContent = qr_ohne_zeit.removePrefix("HC1:").toByteArray()
+
+        val qrContent = cose.removePrefix("BP1:").toByteArray()
         try {
             return Zlib.decompress(Base45.decode(qrContent))
         } catch (e: IOException) {
