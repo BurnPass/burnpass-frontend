@@ -10,12 +10,23 @@ import COSE.Sign1Message
 import de.rki.covpass.base45.Base45
 import de.rki.covpass.sdk.cert.models.CBORWebToken
 import de.rki.covpass.sdk.cert.models.CovCertificate
+import de.rki.covpass.sdk.dependencies.defaultCbor
 import de.rki.covpass.sdk.dependencies.defaultJson
 import de.rki.covpass.sdk.ticketing.TicketingDataInitialization
 import de.rki.covpass.sdk.utils.Zlib
+import de.rki.covpass.sdk.utils.trimAllStrings
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.decodeFromString
+import org.bouncycastle.util.encoders.Base64
 import java.io.IOException
+import java.math.BigInteger
 import java.security.GeneralSecurityException
+import java.security.KeyFactory
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.security.spec.ECPrivateKeySpec
+import java.security.spec.ECPublicKeySpec
+import java.security.spec.X509EncodedKeySpec
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -24,7 +35,41 @@ import java.time.temporal.ChronoUnit
  * Used to encode/decode QR code string.
  */
 
+
 public class QRCoder(private val validator: CertValidator) {
+
+    internal fun recreatePublicKey(public_key_pem_headless: String): PublicKey {
+        val kf = KeyFactory.getInstance("ECDSA")
+        val encoded: ByteArray = Base64.decode(public_key_pem_headless)
+        val keySpec = X509EncodedKeySpec(encoded)
+        val user_public_key = kf.generatePublic(keySpec)
+        return user_public_key
+    }
+
+    internal fun recreatePrivateKey(user_public_key: PublicKey, private_value: String): PrivateKey {
+        val private_value_int = BigInteger(private_value)
+        val kf = KeyFactory.getInstance("ECDSA")
+        val public_spec = kf.getKeySpec(
+            user_public_key, ECPublicKeySpec::class.java,
+        )
+        val priv_spec = ECPrivateKeySpec(private_value_int, public_spec.params)
+        val priv = kf.generatePrivate(priv_spec)
+        return priv
+
+    }
+
+    internal fun extractUserKeys(qr: String): PrivateKey {
+        val pair = decodeRawCose(qr, true)
+        val cose = Sign1Message.DecodeFromBytes(pair.first) as? Sign1Message
+            ?: throw CoseException("Not a cose-sign1 message")
+        val privatevalue = pair.second
+        val cwt = CBORWebToken.decode(cose.GetContent())
+        val public_key_pem_headless =
+            defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
+        val user_public_key = recreatePublicKey(public_key_pem_headless)
+        val user_private_key = recreatePrivateKey(user_public_key, privatevalue)
+        return user_private_key
+    }
 
     internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
         if (!qr.startsWith("PV:")) {
@@ -37,7 +82,7 @@ public class QRCoder(private val validator: CertValidator) {
         private_value = private_value.substring(3)
         val cose = qr.substring(index_bp)
         //val private_value_int = private_value.toInt()
-        return Pair(cose,private_value)
+        return Pair(cose, private_value)
     }
 
     internal fun decodeQRStringcheck(qr: String): String {
@@ -57,15 +102,13 @@ public class QRCoder(private val validator: CertValidator) {
         if (diff > 50) {
             throw TimediffTooBig("Time difference is too big ")
         }
-        println("checker decoder success")
-        println(qr_ohne_zeit)
         return qr_ohne_zeit
     }
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
-    internal fun decodeRawCose(qr: String, is_covpass: Boolean = false): ByteArray {
+    internal fun decodeRawCose(qr: String, is_covpass: Boolean = false): Pair<ByteArray, String> {
         var cose: String
-        var privatevalue: String
+        var privatevalue = ""
         if (is_covpass) {
             val pair = decodeQRStringcovpass(qr)
             cose = pair.first
@@ -73,18 +116,24 @@ public class QRCoder(private val validator: CertValidator) {
         } else {
             cose = decodeQRStringcheck(qr)
         }
-
         val qrContent = cose.removePrefix("BP1:").toByteArray()
         try {
-            return Zlib.decompress(Base45.decode(qrContent))
+            return Pair(Zlib.decompress(Base45.decode(qrContent)), privatevalue)
         } catch (e: IOException) {
             throw DgcDecodeException("Not a valid zlib compressed DCC")
         }
     }
 
-    public fun decodeCose(qr: String, is_covpass: Boolean = false): Sign1Message =
-        Sign1Message.DecodeFromBytes(decodeRawCose(qr, is_covpass)) as? Sign1Message
+
+    public fun decodeCose(qr: String, is_covpass: Boolean = false): Sign1Message {
+        val pair = decodeRawCose(qr, is_covpass)
+        //TEST REMOVE
+        extractUserKeys(qr)
+        //REMOVE
+        val cose = Sign1Message.DecodeFromBytes(pair.first) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
+        return cose
+    }
 
     /**
      * Converts a [qrContent] to a [CovCertificate] data model.
@@ -111,6 +160,7 @@ public class QRCoder(private val validator: CertValidator) {
 
     private companion object {
         const val TICKETING_PROTOCOL = "DCCVALIDATION"
+        private const val USER_PUBLIC_KEY = 73
     }
 }
 
