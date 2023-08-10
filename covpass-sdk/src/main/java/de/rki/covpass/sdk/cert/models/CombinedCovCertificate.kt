@@ -5,6 +5,8 @@
 
 package de.rki.covpass.sdk.cert.models
 
+import java.security.PrivateKey
+
 public sealed interface CertValidationResult {
     public object Valid : CertValidationResult
     public object Invalid : CertValidationResult
@@ -36,7 +38,8 @@ public data class CombinedCovCertificate(
     val hasSeenRevokedNotification: Boolean,
     val isRevoked: Boolean,
     val reissueState: ReissueState,
-    val reissueType: ReissueType
+    val reissueType: ReissueType,
+    val privateKey: PrivateKey
 ) {
 
     /**

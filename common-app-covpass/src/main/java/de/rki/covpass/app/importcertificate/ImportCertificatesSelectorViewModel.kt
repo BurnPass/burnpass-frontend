@@ -80,7 +80,12 @@ internal class ImportCertificatesSelectorViewModel @OptIn(DependencyAccessor::cl
                 throw MaxNumberOfHolderExceededException()
             }
             list.forEach {
-                addNewCertificate(certRepository.certs, it.covCertificate, it.qrContent)
+                addNewCertificate(
+                    certRepository.certs,
+                    it.covCertificate,
+                    it.qrContent,
+                    qrCoder.extractUserKeys(it.qrContent),
+                )
             }
             eventNotifier {
                 addCertificatesFinish()

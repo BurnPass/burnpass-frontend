@@ -96,6 +96,7 @@ internal class CovPassQRScannerViewModel @OptIn(DependencyAccessor::class) const
                 certRepository.certs,
                 covCertificate,
                 qrContent,
+                qrCoder.extractUserKeys(qrContent),
             )?.let {
                 eventNotifier {
                     onScanSuccess(it)

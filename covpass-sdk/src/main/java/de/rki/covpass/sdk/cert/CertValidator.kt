@@ -40,15 +40,15 @@ public class CertValidator(trusted: Iterable<TrustedCert>, private val cbor: Cbo
 
     private val vaccinationCertOids = setOf(
         "1.3.6.1.4.1.1847.2021.1.2",
-        "1.3.6.1.4.1.0.1847.2021.1.2"
+        "1.3.6.1.4.1.0.1847.2021.1.2",
     )
     private val testCertOids = setOf(
         "1.3.6.1.4.1.1847.2021.1.1",
-        "1.3.6.1.4.1.0.1847.2021.1.1"
+        "1.3.6.1.4.1.0.1847.2021.1.1",
     )
     private val recoveryCertOids = setOf(
         "1.3.6.1.4.1.1847.2021.1.3",
-        "1.3.6.1.4.1.0.1847.2021.1.3"
+        "1.3.6.1.4.1.0.1847.2021.1.3",
     )
     private val allCertOids = vaccinationCertOids + testCertOids + recoveryCertOids
 
@@ -69,13 +69,13 @@ public class CertValidator(trusted: Iterable<TrustedCert>, private val cbor: Cbo
         return covCertificate.copy(
             issuer = cwt.issuer,
             validFrom = cwt.validFrom,
-            validUntil = cwt.validUntil
+            validUntil = cwt.validUntil,
         )
     }
 
     internal fun decodeCovCert(cwt: CBORWebToken): CovCertificate =
         cbor.decodeFromByteArray(
-            cwt.rawCbor[HEALTH_CERTIFICATE_CLAIM][DIGITAL_GREEN_CERTIFICATE].trimAllStrings().EncodeToBytes()
+            cwt.rawCbor[HEALTH_CERTIFICATE_CLAIM][DIGITAL_GREEN_CERTIFICATE].trimAllStrings().EncodeToBytes(),
         )
 
     /**
@@ -88,7 +88,7 @@ public class CertValidator(trusted: Iterable<TrustedCert>, private val cbor: Cbo
      */
     public fun decodeAndValidate(
         cose: Sign1Message,
-        allowExpiredCertificates: Boolean = false
+        allowExpiredCertificates: Boolean = false,
     ): CovCertificate {
         val cwt = CBORWebToken.decode(cose.GetContent())
         if (cwt.validUntil.isBefore(Instant.now()) && !allowExpiredCertificates) {
@@ -97,7 +97,7 @@ public class CertValidator(trusted: Iterable<TrustedCert>, private val cbor: Cbo
 
         val kid = KeyIdentifier(
             cose.protectedAttributes?.get(4)?.GetByteString()?.sliceArray(0..7)
-                ?: cose.unprotectedAttributes.get(4).GetByteString().sliceArray(0..7)
+                ?: cose.unprotectedAttributes.get(4).GetByteString().sliceArray(0..7),
         )
         val rValue = if (cose.protectedAttributes?.get(1)?.AsInt32() == SIGNATURE_ALGORITHM_ECDSA) {
             cose.EncodeToCBORObject().get(3).GetByteString().sliceArray(0..31)
@@ -114,7 +114,7 @@ public class CertValidator(trusted: Iterable<TrustedCert>, private val cbor: Cbo
                     val covCertificate = decodeAndValidate(cwt, cert.certificate)
                     return covCertificate.copy(
                         kid = cert.kid,
-                        rValue = Base64.encodeToString(rValue, Base64.DEFAULT)
+                        rValue = Base64.encodeToString(rValue, Base64.DEFAULT),
                     )
                 }
             } catch (e: CoseException) {
@@ -174,5 +174,5 @@ public open class BadCoseSignatureException(message: String = "Validation failed
 
 /** Thrown when the OID values does not match the extendedKeyUsage. */
 public open class NoMatchingExtendedKeyUsageException(
-    message: String = "Validation failed"
+    message: String = "Validation failed",
 ) : DgcDecodeException(message)

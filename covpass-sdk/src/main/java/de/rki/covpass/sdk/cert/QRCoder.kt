@@ -58,7 +58,7 @@ public class QRCoder(private val validator: CertValidator) {
 
     }
 
-    internal fun extractUserKeys(qr: String): PrivateKey {
+    public fun extractUserKeys(qr: String): PrivateKey {
         val pair = decodeRawCose(qr, true)
         val cose = Sign1Message.DecodeFromBytes(pair.first) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
@@ -127,9 +127,6 @@ public class QRCoder(private val validator: CertValidator) {
 
     public fun decodeCose(qr: String, is_covpass: Boolean = false): Sign1Message {
         val pair = decodeRawCose(qr, is_covpass)
-        //TEST REMOVE
-        extractUserKeys(qr)
-        //REMOVE
         val cose = Sign1Message.DecodeFromBytes(pair.first) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
         return cose

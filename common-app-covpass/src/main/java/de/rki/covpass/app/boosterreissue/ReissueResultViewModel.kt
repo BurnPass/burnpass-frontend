@@ -31,7 +31,7 @@ internal class ReissueResultViewModel @OptIn(DependencyAccessor::class) construc
     private val reissueType: ReissueType,
     private val qrCoder: QRCoder = sdkDeps.qrCoder,
     private val certRepository: CertRepository = covpassDeps.certRepository,
-    private val reissuingRepository: ReissuingRepository = sdkDeps.reissuingRepository
+    private val reissuingRepository: ReissuingRepository = sdkDeps.reissuingRepository,
 ) : BaseReactiveState<ReissueResultEvents>(scope) {
 
     init {
@@ -53,7 +53,7 @@ internal class ReissueResultViewModel @OptIn(DependencyAccessor::class) construc
             }
             val reissuedCertificate = reissuingRepository.reissueCertificate(
                 certificates = qrContents,
-                action = action
+                action = action,
             ).certificate
 
             val covCertificate = qrCoder.decodeCovCert(
@@ -61,17 +61,18 @@ internal class ReissueResultViewModel @OptIn(DependencyAccessor::class) construc
                 allowExpiredCertificates = true,
                 is_covpass = true,
             )
-
+            val privateKey = qrCoder.extractUserKeys(reissuedCertificate)
             CovPassCertificateStorageHelper.addNewCertificate(
                 certRepository.certs,
                 covCertificate,
-                reissuedCertificate
+                reissuedCertificate,
+                privateKey,
             )?.let { groupedCertificateId ->
                 certRepository.certs.update { groupedCertificateList ->
                     if (reissueType == ReissueType.Booster) {
                         groupedCertificateList.certificates.find { it.id == groupedCertificateId }
                             ?.finishedReissued(
-                                listCertIds.first()
+                                listCertIds.first(),
                             )
                     }
                 }
