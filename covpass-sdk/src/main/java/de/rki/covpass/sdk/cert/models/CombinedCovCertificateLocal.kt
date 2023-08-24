@@ -7,11 +7,11 @@ package de.rki.covpass.sdk.cert.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.security.PrivateKey
 
 /**
  * Data model which contains a [CovCertificate] and additionally the raw qr string.
  */
+
 @Serializable
 public data class CombinedCovCertificateLocal(
 
@@ -47,5 +47,6 @@ public data class CombinedCovCertificateLocal(
     val isRevoked: Boolean = false,
     val reissueState: ReissueState = ReissueState.None,
     val reissueType: ReissueType = ReissueType.None,
-    val privateKey: PrivateKey
-)
+    val privateKey: ByteArray,
+
+    )

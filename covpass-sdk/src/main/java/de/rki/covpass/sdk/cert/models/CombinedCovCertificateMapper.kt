@@ -1,7 +1,10 @@
 package de.rki.covpass.sdk.cert.models
 
+import java.security.KeyFactory
+import java.security.spec.PKCS8EncodedKeySpec
 import java.time.ZoneId
 import java.time.ZonedDateTime
+
 
 public fun CombinedCovCertificateLocal.toCombinedCovCertificate(
     status: CertValidationResult,
@@ -22,8 +25,9 @@ public fun CombinedCovCertificateLocal.toCombinedCovCertificate(
         isRevoked = isRevoked,
         reissueState = reissueState,
         reissueType = reissueType,
-        privateKey = privateKey
+        privateKey = KeyFactory.getInstance("ECDSA").generatePrivate(PKCS8EncodedKeySpec(privateKey)),
     )
+
 
 public fun CombinedCovCertificate.toCombinedCovCertificateLocal(): CombinedCovCertificateLocal =
     CombinedCovCertificateLocal(
@@ -41,17 +45,17 @@ public fun CombinedCovCertificate.toCombinedCovCertificateLocal(): CombinedCovCe
         isRevoked = isRevoked,
         reissueState = reissueState,
         reissueType = reissueType,
-        privateKey =   privateKey
+        privateKey = privateKey.encoded,
     )
 
 public fun CovCertificate.isInExpiryPeriod(): Boolean =
     ZonedDateTime.ofInstant(
         validUntil,
-        ZoneId.systemDefault()
+        ZoneId.systemDefault(),
     ).minusDays(28).isBefore(ZonedDateTime.now())
 
 public fun CovCertificate.isExpired(): Boolean =
     ZonedDateTime.ofInstant(
         validUntil,
-        ZoneId.systemDefault()
+        ZoneId.systemDefault(),
     ).isBefore(ZonedDateTime.now())
