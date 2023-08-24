@@ -25,12 +25,23 @@ import de.rki.covpass.app.databinding.CertificateBinding
 import de.rki.covpass.app.dependencies.covpassDeps
 import de.rki.covpass.app.detail.DetailFragmentNav
 import de.rki.covpass.commonapp.BaseFragment
-import de.rki.covpass.sdk.cert.models.*
+import de.rki.covpass.sdk.cert.models.BoosterResult
+import de.rki.covpass.sdk.cert.models.CovCertificate
+import de.rki.covpass.sdk.cert.models.GroupedCertificates
+import de.rki.covpass.sdk.cert.models.GroupedCertificatesId
+import de.rki.covpass.sdk.cert.models.GroupedCertificatesList
+import de.rki.covpass.sdk.cert.models.Recovery
+import de.rki.covpass.sdk.cert.models.TestCert
+import de.rki.covpass.sdk.cert.models.Vaccination
+import de.rki.covpass.sdk.cert.models.VaccinationCertType
 import de.rki.covpass.sdk.utils.daysTillNow
 import de.rki.covpass.sdk.utils.hoursTillNow
 import de.rki.covpass.sdk.utils.monthTillNow
 import kotlinx.coroutines.invoke
 import kotlinx.parcelize.Parcelize
+import org.bouncycastle.util.encoders.Base64
+import java.security.PrivateKey
+import java.security.Signature
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -69,9 +80,9 @@ internal class CertificateFragment : BaseFragment() {
 
         EveryXSecond {
             binding.certificateCard.qrCodeImage = if (mainCombinedCertificate.isRevoked) {
-                generateQRCode(REVOKED_QRCODE)
+                generateQRCode(REVOKED_QRCODE, mainCombinedCertificate.privateKey)
             } else {
-                generateQRCode(mainCombinedCertificate.qrContent)
+                generateQRCode(mainCombinedCertificate.qrContent, mainCombinedCertificate.privateKey)
             }
         }
 
@@ -106,20 +117,20 @@ internal class CertificateFragment : BaseFragment() {
                                 getString(
                                     R.string.certificate_timestamp_days,
                                     vaccination.occurrence?.atStartOfDay(ZoneId.systemDefault())
-                                        ?.toInstant()?.daysTillNow()
+                                        ?.toInstant()?.daysTillNow(),
                                 )
                             } else {
                                 getString(
                                     R.string.certificate_timestamp_months,
                                     vaccination.occurrence?.atStartOfDay(ZoneId.systemDefault())
-                                        ?.toInstant()?.monthTillNow()
+                                        ?.toInstant()?.monthTillNow(),
                                 )
                             },
                             if (showBoosterNotification) {
                                 R.drawable.booster_notification_icon
                             } else {
                                 R.drawable.main_cert_status_complete
-                            }
+                            },
                         )
                     }
                     VaccinationCertType.VACCINATION_COMPLETE -> {
@@ -131,14 +142,14 @@ internal class CertificateFragment : BaseFragment() {
                             getString(
                                 R.string.certificates_overview_vaccination_certificate_message,
                                 vaccination.doseNumber,
-                                vaccination.totalSerialDoses
+                                vaccination.totalSerialDoses,
                             ),
                             getString(
                                 R.string.certificate_timestamp_months,
                                 vaccination.occurrence?.atStartOfDay(ZoneId.systemDefault())
-                                    ?.toInstant()?.monthTillNow()
+                                    ?.toInstant()?.monthTillNow(),
                             ),
-                            R.drawable.main_cert_status_incomplete
+                            R.drawable.main_cert_status_incomplete,
                         )
                     }
                     VaccinationCertType.VACCINATION_INCOMPLETE -> {
@@ -150,14 +161,14 @@ internal class CertificateFragment : BaseFragment() {
                             getString(
                                 R.string.certificates_overview_vaccination_certificate_message,
                                 vaccination.doseNumber,
-                                vaccination.totalSerialDoses
+                                vaccination.totalSerialDoses,
                             ),
                             getString(
                                 R.string.certificate_timestamp_months,
                                 vaccination.occurrence?.atStartOfDay(ZoneId.systemDefault())
-                                    ?.toInstant()?.monthTillNow()
+                                    ?.toInstant()?.monthTillNow(),
                             ),
-                            R.drawable.main_cert_status_incomplete
+                            R.drawable.main_cert_status_incomplete,
                         )
                     }
                 }
@@ -175,9 +186,9 @@ internal class CertificateFragment : BaseFragment() {
                     },
                     getString(
                         R.string.certificate_timestamp_hours,
-                        test.sampleCollection?.hoursTillNow()
+                        test.sampleCollection?.hoursTillNow(),
                     ),
-                    R.drawable.main_cert_test_blue
+                    R.drawable.main_cert_test_blue,
                 )
             }
             is Recovery -> {
@@ -190,9 +201,9 @@ internal class CertificateFragment : BaseFragment() {
                     getString(
                         R.string.certificate_timestamp_months,
                         recovery.firstResult?.atStartOfDay(ZoneId.systemDefault())?.toInstant()
-                            ?.monthTillNow()
+                            ?.monthTillNow(),
                     ),
-                    R.drawable.main_cert_status_complete
+                    R.drawable.main_cert_status_complete,
                 )
             }
             // .let{} to enforce exhaustiveness
@@ -216,21 +227,37 @@ internal class CertificateFragment : BaseFragment() {
                 CertificateSwitcherFragmentNav(args.certId)
             } else {
                 DetailFragmentNav(args.certId)
-            }
+            },
         )
     }
 
-    private suspend fun generateQRCode(qrContent: String): Bitmap {
-        val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
-        var neuerqr = current.format(formatter)+"_"+qrContent
+    private fun sign(privateKey: PrivateKey, time: String): String {
+        val sig = Signature.getInstance("SHA1WithECDSA")
+        sig.initSign(privateKey)
+        sig.update(time.encodeToByteArray())
+        val signatureBytes = sig.sign()
+        val signature = Base64.encode(signatureBytes)
+        return signature.toString()
+    }
+
+    private suspend fun generateQRCode(qrContent: String, privateKey: PrivateKey): Bitmap {
+        var neuerqr = qrContent
+        if (!qrContent.equals(REVOKED_QRCODE)) {
+            val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
+            //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
+            val currenttime = current.format(formatter)
+            //signieren mit dem privatekey
+            val signature = sign(privateKey, currenttime)
+            neuerqr = signature + "_" + currenttime + "_" + qrContent
+        }
         return dispatchers.default {
             BarcodeEncoder().encodeBitmap(
                 neuerqr,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,
-                mapOf(EncodeHintType.MARGIN to 0)
+                mapOf(EncodeHintType.MARGIN to 0),
             )
         }
     }

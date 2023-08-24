@@ -29,6 +29,9 @@ import de.rki.covpass.sdk.cert.models.CovCertificate
 import de.rki.covpass.sdk.cert.models.GroupedCertificatesList
 import kotlinx.coroutines.invoke
 import kotlinx.parcelize.Parcelize
+import org.bouncycastle.util.encoders.Base64
+import java.security.PrivateKey
+import java.security.Signature
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -80,7 +83,7 @@ internal class DisplayQrCodeFragment : BaseBottomSheet() {
         valueAnimator?.removeAllUpdateListeners()
         context?.let {
             bottomSheetBinding.bottomSheetContainer.setBackgroundColor(
-                ContextCompat.getColor(it, android.R.color.transparent)
+                ContextCompat.getColor(it, android.R.color.transparent),
             )
         }
     }
@@ -89,7 +92,7 @@ internal class DisplayQrCodeFragment : BaseBottomSheet() {
         val cert = certificateList.getCombinedCertificate(args.certId) ?: return
         EveryXSecond {
             binding.displayQrImageview.setImageBitmap(
-                generateQRCode(cert.qrContent)
+                generateQRCode(cert.qrContent, cert.privateKey),
             )
         }
     }
@@ -98,17 +101,31 @@ internal class DisplayQrCodeFragment : BaseBottomSheet() {
         triggerBackPress()
     }
 
-    private suspend fun generateQRCode(qrContent: String): Bitmap =
-        dispatchers.default {
-            val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz") //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
-            var neuerqr = current.format(formatter)+"_"+qrContent
+    private fun sign(privateKey: PrivateKey, time: String): String {
+        val sig = Signature.getInstance("SHA1WithECDSA")
+        sig.initSign(privateKey)
+        sig.update(time.encodeToByteArray())
+        val signatureBytes = sig.sign()
+        val signature = Base64.encode(signatureBytes)
+        return signature.toString()
+    }
+
+    private suspend fun generateQRCode(qrContent: String, privateKey: PrivateKey): Bitmap {
+        val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
+        //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
+        val currenttime = current.format(formatter)
+        //signieren mit dem privatekey
+        val signature = sign(privateKey, currenttime)
+        val neuerqr = signature + "_" + currenttime + "_" + qrContent
+        return dispatchers.default {
             BarcodeEncoder().encodeBitmap(
                 neuerqr,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,
-                mapOf(EncodeHintType.MARGIN to 0)
+                mapOf(EncodeHintType.MARGIN to 0),
             )
         }
+    }
 }
