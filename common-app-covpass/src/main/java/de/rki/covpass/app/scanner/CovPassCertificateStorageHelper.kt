@@ -18,6 +18,13 @@ import de.rki.covpass.sdk.cert.models.isInExpiryPeriod
 import java.security.PrivateKey
 
 public object CovPassCertificateStorageHelper {
+    //remove the private value if present when storing, as it is seperately stored and should not be displayed
+    internal fun removePV(qrContent: String): String {
+        val newqrContent: String
+        val index_bp = qrContent.indexOf("BP")
+        newqrContent = qrContent.substring(index_bp)
+        return newqrContent
+    }
 
     public suspend fun addNewCertificate(
         groupedCertificatesList: SuspendMutableValueFlow<GroupedCertificatesList>,
@@ -30,7 +37,7 @@ public object CovPassCertificateStorageHelper {
             certId = it.addNewCertificate(
                 CombinedCovCertificate(
                     covCertificate = covCertificate,
-                    qrContent = qrContent,
+                    qrContent = removePV(qrContent),
                     timestamp = System.currentTimeMillis(),
                     status = when {
                         covCertificate.isExpired() -> CertValidationResult.Expired
