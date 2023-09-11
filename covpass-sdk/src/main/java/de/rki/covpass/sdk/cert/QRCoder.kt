@@ -24,12 +24,14 @@ import java.security.GeneralSecurityException
 import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.security.Signature
 import java.security.spec.ECPrivateKeySpec
 import java.security.spec.ECPublicKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 /**
  * Used to encode/decode QR code string.
@@ -85,24 +87,54 @@ public class QRCoder(private val validator: CertValidator) {
         return Pair(cose, private_value)
     }
 
+    internal fun verify_signature(timestring: String, signature: String, cose_string: String): Boolean {
+        val cose_byte = cose_string.removePrefix("BP1:").toByteArray()
+        val cose: ByteArray
+        try {
+            cose = Zlib.decompress(Base45.decode(cose_byte))
+        } catch (e: IOException) {
+            throw DgcDecodeException("Not a valid zlib compressed DCC")
+        }
+        val message = Sign1Message.DecodeFromBytes(cose) as? Sign1Message
+            ?: throw CoseException("Not a cose-sign1 message")
+        val cwt = CBORWebToken.decode(message.GetContent())
+        val public_key_pem_headless =
+            defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
+        val user_public_key = recreatePublicKey(public_key_pem_headless)
+        val signatureVerify: Signature = Signature.getInstance("SHA1WithECDSA")
+        signatureVerify.initVerify(user_public_key)
+        signatureVerify.update(timestring.encodeToByteArray())
+
+        val sigVerified = signatureVerify.verify(Base64.decode(signature.toByteArray()))
+        return sigVerified
+    }
+
     internal fun decodeQRStringcheck(qr: String): String {
         val current = ZonedDateTime.now()
-        val index = qr.indexOf("_")
+        var index = qr.indexOf("_")
         if (index == -1) //Fehlt der Timestamp, wird das Zertifikat abgelehnt
         {
             println("Timestamp missing, Certificated denied")
             throw IllegalArgumentException("Timestamp missing, Certificated denied")
         }
-        val qrtime = qr.substring(0, index)
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
-        val QRCodetime = ZonedDateTime.parse(qrtime, formatter) //
+        val signature = qr.substring(0, index)
+        val qr_signless = qr.substring(index + 1)
+        index = qr_signless.indexOf("_")
+        val qrtime = qr_signless.substring(0, index)
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz", Locale("en"))
+        val QRCodetime = ZonedDateTime.parse(qrtime, formatter)
         val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
         println("Time difference: " + (diff))
-        val qr_ohne_zeit = qr.substring(index + 1)
+        val qr_sign_and_timeless = qr_signless.substring(index + 1)
         if (diff > 50) {
             throw TimediffTooBig("Time difference is too big ")
         }
-        return qr_ohne_zeit
+        //TODO: verify signature
+        if (!verify_signature(qrtime, signature, qr_sign_and_timeless)) {
+            throw IllegalArgumentException("Signature invalid")
+        }
+        return qr_sign_and_timeless
     }
 
     /** Returns the raw COSE ByteArray contained within the certificate. */

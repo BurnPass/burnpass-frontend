@@ -45,6 +45,7 @@ import java.security.Signature
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Parcelize
 internal class CertificateFragmentNav(val certId: GroupedCertificatesId) :
@@ -236,8 +237,7 @@ internal class CertificateFragment : BaseFragment() {
         sig.initSign(privateKey)
         sig.update(time.encodeToByteArray())
         val signatureBytes = sig.sign()
-        val signature = Base64.encode(signatureBytes)
-        return signature.toString()
+        return Base64.toBase64String(signatureBytes)
     }
 
     private suspend fun generateQRCode(qrContent: String, privateKey: PrivateKey): Bitmap {
@@ -245,7 +245,7 @@ internal class CertificateFragment : BaseFragment() {
         if (!qrContent.equals(REVOKED_QRCODE)) {
             val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
             //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz", Locale("en"))
             val currenttime = current.format(formatter)
             //signieren mit dem privatekey
             val signature = sign(privateKey, currenttime)
