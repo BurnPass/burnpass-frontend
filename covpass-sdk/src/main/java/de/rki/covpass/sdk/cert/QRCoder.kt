@@ -44,8 +44,7 @@ public class QRCoder(private val validator: CertValidator) {
         val kf = KeyFactory.getInstance("ECDSA")
         val encoded: ByteArray = Base64.decode(public_key_pem_headless)
         val keySpec = X509EncodedKeySpec(encoded)
-        val user_public_key = kf.generatePublic(keySpec)
-        return user_public_key
+        return kf.generatePublic(keySpec)
     }
 
     internal fun recreatePrivateKey(user_public_key: PublicKey, private_value: String): PrivateKey {
@@ -55,16 +54,13 @@ public class QRCoder(private val validator: CertValidator) {
             user_public_key, ECPublicKeySpec::class.java,
         )
         val priv_spec = ECPrivateKeySpec(private_value_int, public_spec.params)
-        val priv = kf.generatePrivate(priv_spec)
-        return priv
-
+        return kf.generatePrivate(priv_spec)
     }
 
     public fun extractUserKeys(qr: String): PrivateKey {
-        val pair = decodeRawCose(qr, true)
-        val cose = Sign1Message.DecodeFromBytes(pair.first) as? Sign1Message
+        val (encoded, privatevalue) = decodeRawCose(qr, true)
+        val cose = Sign1Message.DecodeFromBytes(encoded) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
-        val privatevalue = pair.second
         val cwt = CBORWebToken.decode(cose.GetContent())
         val public_key_pem_headless =
             defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
@@ -76,14 +72,11 @@ public class QRCoder(private val validator: CertValidator) {
     internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
         if (!qr.startsWith("PV:")) {
             //Bei fehlender private value kann der QR-Code nicht eingelesen werden
-            println("Missing private value")
             throw IllegalArgumentException("Missing private value, is the correct QR-Code being scanned?")
         }
         val index_bp = qr.indexOf("BP")
-        var private_value = qr.substring(0, index_bp)
-        private_value = private_value.substring(3)
+        val private_value = qr.substring(3, index_bp)
         val cose = qr.substring(index_bp)
-        //val private_value_int = private_value.toInt()
         return Pair(cose, private_value)
     }
 
@@ -104,7 +97,6 @@ public class QRCoder(private val validator: CertValidator) {
         val signatureVerify: Signature = Signature.getInstance("SHA1WithECDSA")
         signatureVerify.initVerify(user_public_key)
         signatureVerify.update(timestring.encodeToByteArray())
-
         val sigVerified = signatureVerify.verify(Base64.decode(signature.toByteArray()))
         return sigVerified
     }
@@ -114,7 +106,6 @@ public class QRCoder(private val validator: CertValidator) {
         var index = qr.indexOf("_")
         if (index == -1) //Fehlt der Timestamp, wird das Zertifikat abgelehnt
         {
-            println("Timestamp missing, Certificated denied")
             throw IllegalArgumentException("Timestamp missing, Certificated denied")
         }
         val signature = qr.substring(0, index)
@@ -125,12 +116,12 @@ public class QRCoder(private val validator: CertValidator) {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz", Locale("en"))
         val QRCodetime = ZonedDateTime.parse(qrtime, formatter)
         val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
+        //debug print
         println("Time difference: " + (diff))
         val qr_sign_and_timeless = qr_signless.substring(index + 1)
         if (diff > 50) {
             throw TimediffTooBig("Time difference is too big ")
         }
-        //TODO: verify signature
         if (!verify_signature(qrtime, signature, qr_sign_and_timeless)) {
             throw IllegalArgumentException("Signature invalid")
         }
@@ -139,14 +130,15 @@ public class QRCoder(private val validator: CertValidator) {
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
     internal fun decodeRawCose(qr: String, is_covpass: Boolean = false): Pair<ByteArray, String> {
-        var cose: String
-        var privatevalue = ""
+        val cose: String
+        val privatevalue: String
         if (is_covpass) {
             val pair = decodeQRStringcovpass(qr)
             cose = pair.first
             privatevalue = pair.second
         } else {
             cose = decodeQRStringcheck(qr)
+            privatevalue = ""
         }
         val qrContent = cose.removePrefix("BP1:").toByteArray()
         try {
@@ -158,8 +150,7 @@ public class QRCoder(private val validator: CertValidator) {
 
 
     public fun decodeCose(qr: String, is_covpass: Boolean = false): Sign1Message {
-        val pair = decodeRawCose(qr, is_covpass)
-        val cose = Sign1Message.DecodeFromBytes(pair.first) as? Sign1Message
+        val cose = Sign1Message.DecodeFromBytes(decodeRawCose(qr, is_covpass).first) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
         return cose
     }
