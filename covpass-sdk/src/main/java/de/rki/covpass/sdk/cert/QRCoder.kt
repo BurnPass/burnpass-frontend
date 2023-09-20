@@ -59,6 +59,9 @@ public class QRCoder(private val validator: CertValidator) {
 
     public fun extractUserKeys(qr: String): PrivateKey {
         val (encoded, privatevalue) = decodeRawCose(qr, true)
+        if (privatevalue.equals("")) {
+            throw IllegalArgumentException("Missing private value, is the correct QR-Code being scanned?")
+        }
         val cose = Sign1Message.DecodeFromBytes(encoded) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
         val cwt = CBORWebToken.decode(cose.GetContent())
@@ -72,7 +75,8 @@ public class QRCoder(private val validator: CertValidator) {
     internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
         if (!qr.startsWith("PV:")) {
             //Bei fehlender private value kann der QR-Code nicht eingelesen werden
-            throw IllegalArgumentException("Missing private value, is the correct QR-Code being scanned?")
+            //Wird er jedoch intern überprüft, kann ohne PV fortgeführt werden
+            return Pair(qr,"")
         }
         val index_bp = qr.indexOf("BP")
         val private_value = qr.substring(3, index_bp)
