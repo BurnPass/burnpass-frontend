@@ -183,7 +183,7 @@ public class QRCoder(private val validator: CertValidator) {
 
     private companion object {
         const val TICKETING_PROTOCOL = "DCCVALIDATION"
-        private const val USER_PUBLIC_KEY = 73
+        private const val USER_PUBLIC_KEY = 8
     }
 }
 
