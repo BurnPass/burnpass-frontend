@@ -199,16 +199,14 @@ internal class CertificateSwitcherItemFragment : BaseFragment() {
     }
 
     private suspend fun generateQRCode(qrContent: String, privateKey: PrivateKey): Bitmap {
-        val current = ZonedDateTime.now() //yyyy-MM-dd HH:mm:ssXX
-        //Jahr Monat Tag Stunde Minute Sekunde TimezoneID
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz", Locale("en"))
-        val currenttime = current.format(formatter)
+        val currenttime = ZonedDateTime.now().format(formatter)
         //signieren mit dem privatekey
         val signature = sign(privateKey, currenttime)
-        val neuerqr = signature + "_" + currenttime + "_" + qrContent
+        val displayedqr = signature + "_" + currenttime + "_" + qrContent
         return dispatchers.default {
             BarcodeEncoder().encodeBitmap(
-                neuerqr,
+                displayedqr,
                 BarcodeFormat.QR_CODE,
                 resources.displayMetrics.widthPixels,
                 resources.displayMetrics.widthPixels,
