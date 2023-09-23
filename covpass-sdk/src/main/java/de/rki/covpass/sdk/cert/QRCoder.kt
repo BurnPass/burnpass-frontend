@@ -72,18 +72,6 @@ public class QRCoder(private val validator: CertValidator) {
         return user_private_key
     }
 
-    internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
-        if (!qr.startsWith("PV:")) {
-            //Bei fehlender private value kann der QR-Code nicht eingelesen werden
-            //Wird er jedoch intern überprüft, kann ohne PV fortgeführt werden
-            return Pair(qr,"")
-        }
-        val index_bp = qr.indexOf("BP")
-        val private_value = qr.substring(3, index_bp)
-        val cose = qr.substring(index_bp)
-        return Pair(cose, private_value)
-    }
-
     internal fun verify_signature(timestring: String, signature: String, cose_string: String): Boolean {
         val cose_byte = cose_string.removePrefix("BP1:").toByteArray()
         val cose: ByteArray
@@ -98,38 +86,49 @@ public class QRCoder(private val validator: CertValidator) {
         val public_key_pem_headless =
             defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
         val user_public_key = recreatePublicKey(public_key_pem_headless)
-        val signatureVerify: Signature = Signature.getInstance("SHA1WithECDSA")
-        signatureVerify.initVerify(user_public_key)
-        signatureVerify.update(timestring.encodeToByteArray())
-        val sigVerified = signatureVerify.verify(Base64.decode(signature.toByteArray()))
-        return sigVerified
+        val signatureVerifier: Signature = Signature.getInstance("SHA1WithECDSA")
+        signatureVerifier.initVerify(user_public_key)
+        signatureVerifier.update(timestring.encodeToByteArray())
+        return signatureVerifier.verify(Base64.decode(signature.toByteArray()))
+    }
+
+    internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
+        if (!qr.startsWith("PV:")) {
+            //Bei fehlender private value kann der QR-Code nicht eingelesen werden
+            //Wird er jedoch intern überprüft, kann ohne PV fortgeführt werden
+            return Pair(qr, "")
+        }
+        val index_bp = qr.indexOf("BP")
+        val private_value = qr.substring(3, index_bp)
+        val cose = qr.substring(index_bp)
+        return Pair(cose, private_value)
     }
 
     internal fun decodeQRStringcheck(qr: String): String {
-        val current = ZonedDateTime.now()
-        var index = qr.indexOf("_")
-        if (index == -1) //Fehlt der Timestamp, wird das Zertifikat abgelehnt
-        {
+        if (!qr.contains("_")) {
             throw IllegalArgumentException("Timestamp missing, Certificated denied")
         }
-        val signature = qr.substring(0, index)
-        val qr_signless = qr.substring(index + 1)
-        index = qr_signless.indexOf("_")
-        val qrtime = qr_signless.substring(0, index)
+        val qrsplits: List<String> = qr.split("_")
+        if (qrsplits.size != 3) {
+            //lässt sich der QRCode nicht in genau 3 Teile teilen, fehlt etwas oder es ist ein falscher QRCode
+            throw IllegalArgumentException("Timestamp/Signature missing or wrong QRCode, Certificated denied")
+        }
+        //assigning each part to a val for clarity
+        val signature = qrsplits[0]
+        val qrtimestamp = qrsplits[1]
+        val certificateQR = qrsplits[2]
 
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssz", Locale("en"))
-        val QRCodetime = ZonedDateTime.parse(qrtime, formatter)
-        val diff = Math.abs(ChronoUnit.SECONDS.between(current, QRCodetime))
-        //debug print
-        println("Time difference: " + (diff))
-        val qr_sign_and_timeless = qr_signless.substring(index + 1)
-        if (diff > 50) {
-            throw TimediffTooBig("Time difference is too big ")
+        val qrdatetime = ZonedDateTime.parse(qrtimestamp, formatter)
+        val timedifference = Math.abs(ChronoUnit.SECONDS.between(ZonedDateTime.now(), qrdatetime))
+        if (timedifference > 50) {
+            throw TimediffTooBig("The time difference between creation and scanning of the certificat is too big")
         }
-        if (!verify_signature(qrtime, signature, qr_sign_and_timeless)) {
+        //Entfernen der Signatur und des Zeitstempels ergibt das Zertifikat als cose
+        if (!verify_signature(qrtimestamp, signature, certificateQR)) {
             throw IllegalArgumentException("Signature invalid")
         }
-        return qr_sign_and_timeless
+        return certificateQR
     }
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
