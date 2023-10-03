@@ -1,13 +1,11 @@
 # PG/BA Anmerkungen
 Die IP/DNS-Adresse muss in der App geändert werden.
-Geändert und genutzt wurde nur die demo version, jedoch könnte man die gleichen Datein in der nicht-Demo Version auch genauso ändern.
-An folgenden Stellen wurde die IP/DNS des Servers eingetragen
+Geändert und genutzt wurde nur die demo Version, jedoch könnte man die gleichen Datein in der nicht-Demo Version ebenfalls ändern.
+An folgenden Stellen wurde die IP/DNS des Servers eingetragen:
 
 * covpass-sdk-demo/src/main/res/values/strings.xml (for DSA)
 * covpass-sdk-demo/build.gradle (for DSC)
 * covpass-sdk/src/main/java/de/rki/covpass/sdk/dependencies/SdkDependencies.kt (for dcc rules, zeile 219, dccRulesHost)
-
-Ob die unteren beiden wirklich nötig sind, wurde nicht getestet.
 
 Die neuste Version von Android Studio funktioniert vermutlich aufgrund des Kotlin plugins nicht, mit der "Chipmunk" version funktioniert es.
 
