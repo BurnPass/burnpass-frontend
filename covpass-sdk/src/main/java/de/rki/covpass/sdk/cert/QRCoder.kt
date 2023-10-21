@@ -40,7 +40,12 @@ import java.util.Locale
 
 public class QRCoder(private val validator: CertValidator) {
 
-    internal fun recreatePublicKey(public_key_pem_headless: String): PublicKey {
+    internal fun recreatePublicKey(encoded_cose: ByteArray): PublicKey {
+        val cose = Sign1Message.DecodeFromBytes(encoded_cose) as? Sign1Message
+            ?: throw CoseException("Not a cose-sign1 message")
+        val cwt = CBORWebToken.decode(cose.GetContent())
+        val public_key_pem_headless =
+            defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
         val kf = KeyFactory.getInstance("ECDSA")
         val encoded: ByteArray = Base64.decode(public_key_pem_headless)
         val keySpec = X509EncodedKeySpec(encoded)
@@ -62,30 +67,20 @@ public class QRCoder(private val validator: CertValidator) {
         if (privatevalue.equals("")) {
             throw IllegalArgumentException("Missing private value, is the correct QR-Code being scanned?")
         }
-        val cose = Sign1Message.DecodeFromBytes(encoded) as? Sign1Message
-            ?: throw CoseException("Not a cose-sign1 message")
-        val cwt = CBORWebToken.decode(cose.GetContent())
-        val public_key_pem_headless =
-            defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
-        val user_public_key = recreatePublicKey(public_key_pem_headless)
+        val user_public_key = recreatePublicKey(encoded)
         val user_private_key = recreatePrivateKey(user_public_key, privatevalue)
         return user_private_key
     }
 
-    internal fun verify_signature(timestring: String, signature: String, cose_string: String): Boolean {
-        val cose_byte = cose_string.removePrefix("BP1:").toByteArray()
-        val cose: ByteArray
+    internal fun verify_signature(timestring: String, signature: String, encoded_cose_string: String): Boolean {
+        val encoded_cose_byte = encoded_cose_string.removePrefix("BP1:").toByteArray()
+        val encoded_cose: ByteArray
         try {
-            cose = Zlib.decompress(Base45.decode(cose_byte))
+            encoded_cose = Zlib.decompress(Base45.decode(encoded_cose_byte))
         } catch (e: IOException) {
             throw DgcDecodeException("Not a valid zlib compressed DCC")
         }
-        val message = Sign1Message.DecodeFromBytes(cose) as? Sign1Message
-            ?: throw CoseException("Not a cose-sign1 message")
-        val cwt = CBORWebToken.decode(message.GetContent())
-        val public_key_pem_headless =
-            defaultCbor.decodeFromByteArray<String>(cwt.rawCbor[USER_PUBLIC_KEY].trimAllStrings().EncodeToBytes())
-        val user_public_key = recreatePublicKey(public_key_pem_headless)
+        val user_public_key = recreatePublicKey(encoded_cose)
         val signatureVerifier: Signature = Signature.getInstance("SHA1WithECDSA")
         signatureVerifier.initVerify(user_public_key)
         signatureVerifier.update(timestring.encodeToByteArray())
