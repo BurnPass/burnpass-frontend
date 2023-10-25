@@ -162,11 +162,7 @@ public class ConsentSendTicketingFragment : BaseTicketingFragment(), ValidationT
                         )
                     }
                     certificateDataElementType.setText(R.string.certificate_check_validity_vaccination)
-                    certificateDataElementInfo.text = com.ibm.health.common.android.utils.getString(
-                        R.string.certificates_overview_vaccination_certificate_message,
-                        dgcEntry.doseNumber,
-                        dgcEntry.totalSerialDoses
-                    )
+                    certificateDataElementInfo.text = ""
                     certificateDataElementDate.text = com.ibm.health.common.android.utils.getString(
                         R.string.certificates_overview_vaccination_certificate_date,
                         dgcEntry.occurrence.formatDateOrEmpty()

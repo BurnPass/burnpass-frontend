@@ -140,11 +140,7 @@ internal class CertificateFragment : BaseFragment() {
                             mainCertificate.fullName,
                             isMarkedAsFavorite,
                             certStatus,
-                            getString(
-                                R.string.certificates_overview_vaccination_certificate_message,
-                                vaccination.doseNumber,
-                                vaccination.totalSerialDoses,
-                            ),
+                            "",
                             getString(
                                 R.string.certificate_timestamp_months,
                                 vaccination.occurrence?.atStartOfDay(ZoneId.systemDefault())
@@ -159,11 +155,7 @@ internal class CertificateFragment : BaseFragment() {
                             mainCertificate.fullName,
                             isMarkedAsFavorite,
                             certStatus,
-                            getString(
-                                R.string.certificates_overview_vaccination_certificate_message,
-                                vaccination.doseNumber,
-                                vaccination.totalSerialDoses,
-                            ),
+                            "",
                             getString(
                                 R.string.certificate_timestamp_months,
                                 vaccination.occurrence?.atStartOfDay(ZoneId.systemDefault())

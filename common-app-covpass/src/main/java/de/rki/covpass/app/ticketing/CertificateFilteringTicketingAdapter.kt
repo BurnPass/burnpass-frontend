@@ -81,11 +81,7 @@ public class CertificateFilteringTicketingAdapter(
                             )
                         }
                         certificateDataElementType.setText(R.string.certificate_check_validity_vaccination)
-                        certificateDataElementInfo.text = getString(
-                            R.string.certificates_overview_vaccination_certificate_message,
-                            dgcEntry.doseNumber,
-                            dgcEntry.totalSerialDoses
-                        )
+                        certificateDataElementInfo.text = ""
                         certificateDataElementDate.text = getString(
                             R.string.certificates_overview_vaccination_certificate_date,
                             dgcEntry.occurrence.formatDateOrEmpty()

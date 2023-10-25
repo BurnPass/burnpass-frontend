@@ -85,11 +85,7 @@ public class CertificateDataElementWithCheckBox @JvmOverloads constructor(
         when (val dgcEntry = covCertificate.dgcEntry) {
             is Vaccination -> {
                 type = getString(R.string.certificate_check_validity_vaccination)
-                info = getString(
-                    R.string.certificates_overview_vaccination_certificate_message,
-                    dgcEntry.doseNumber,
-                    dgcEntry.totalSerialDoses
-                )
+                info = ""
                 date = getString(
                     R.string.certificates_overview_vaccination_certificate_date,
                     dgcEntry.occurrence.formatDateOrEmpty()

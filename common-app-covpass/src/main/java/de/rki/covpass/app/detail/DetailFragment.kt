@@ -582,10 +582,7 @@ internal class DetailFragment :
                             id = groupedDgcEntry.id,
                             type = groupedDgcEntry.type,
                             title = getString(R.string.certificates_overview_vaccination_certificate_title),
-                            subtitle = getString(
-                                R.string.certificates_overview_vaccination_certificate_message,
-                                groupedDgcEntry.doseNumber, groupedDgcEntry.totalSerialDoses
-                            ),
+                            subtitle ="",
                             date = getString(
                                 R.string.certificates_overview_vaccination_certificate_date,
                                 groupedDgcEntry.occurrence?.formatDate()

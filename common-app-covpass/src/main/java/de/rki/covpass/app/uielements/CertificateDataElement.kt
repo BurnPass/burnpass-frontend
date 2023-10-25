@@ -110,11 +110,7 @@ public class CertificateDataElement @JvmOverloads constructor(
                     typeIcon = R.drawable.main_cert_status_incomplete
                 }
                 type = getString(R.string.certificate_check_validity_vaccination)
-                info = getString(
-                    R.string.certificates_overview_vaccination_certificate_message,
-                    dgcEntry.doseNumber,
-                    dgcEntry.totalSerialDoses
-                )
+                info = ""
                 date = getString(
                     R.string.certificates_overview_vaccination_certificate_date,
                     dgcEntry.occurrence.formatDateOrEmpty()
