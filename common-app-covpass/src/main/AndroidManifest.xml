@@ -9,9 +9,9 @@
 
   <application
     android:name="de.rki.covpass.app.App"
-    android:icon="@mipmap/ic_launcher"
+    android:icon="@mipmap/ic_launcher_foreground"
     android:label="@string/cert_app_name"
-    android:roundIcon="@mipmap/ic_launcher_round">
+    android:roundIcon="@mipmap/ic_launcher_foreground">
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.covpass.provider"
