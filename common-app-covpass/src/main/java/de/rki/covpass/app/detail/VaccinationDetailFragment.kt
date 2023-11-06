@@ -30,12 +30,7 @@ internal class VaccinationDetailFragment : DgcEntryDetailFragment() {
 
     private val args: VaccinationDetailFragmentNav by lazy { getArgs() }
 
-    override fun getToolbarTitleText(cert: CovCertificate): String =
-        getString(
-            R.string.vaccination_certificate_detail_view_vaccination_title,
-            cert.vaccination?.doseNumber,
-            cert.vaccination?.totalSerialDoses
-        )
+    override fun getToolbarTitleText(cert: CovCertificate): String = ""
 
     override fun getHeaderText(): String = getString(R.string.vaccination_certificate_detail_view_vaccination_headline)
 
