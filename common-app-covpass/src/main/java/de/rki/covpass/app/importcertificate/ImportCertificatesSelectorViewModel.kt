@@ -191,7 +191,7 @@ internal class ImportCertificatesSelectorViewModel @OptIn(DependencyAccessor::cl
         for (qrContent in newList) {
             try {
                 val covCertificate =
-                    qrCoder.decodeCovCert(qrContent, allowExpiredCertificates = true, is_covpass = true)
+                    qrCoder.decodeCovCert(qrContent, allowExpiredCertificates = true, is_burnpass = true)
                 validateEntity(covCertificate.dgcEntry.idWithoutPrefix)
                 if (!validateRevocation(covCertificate, revocationRemoteListRepository)) {
                     list.add(ImportCovCertificate(covCertificate, qrContent))

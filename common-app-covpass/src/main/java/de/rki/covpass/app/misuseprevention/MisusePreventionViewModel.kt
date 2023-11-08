@@ -35,7 +35,7 @@ internal class MisusePreventionViewModel @OptIn(DependencyAccessor::class) const
 
     fun addNewCertificate(qrContent: String) {
         launch {
-            val covCertificate = qrCoder.decodeCovCert(qrContent, allowExpiredCertificates = true, is_covpass = true)
+            val covCertificate = qrCoder.decodeCovCert(qrContent, allowExpiredCertificates = true, is_burnpass = true)
             val privateKey = qrCoder.extractUserKeys(qrContent)
             CovPassCertificateStorageHelper.addNewCertificate(
                 certRepository.certs,

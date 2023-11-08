@@ -127,10 +127,10 @@ public class QRCoder(private val validator: CertValidator) {
     }
 
     /** Returns the raw COSE ByteArray contained within the certificate. */
-    internal fun decodeRawCose(qr: String, is_covpass: Boolean = false): Pair<ByteArray, String> {
+    internal fun decodeRawCose(qr: String, is_burnpass: Boolean = false): Pair<ByteArray, String> {
         val cose: String
         val privatevalue: String
-        if (is_covpass) {
+        if (is_burnpass) {
             val pair = decodeQRStringcovpass(qr)
             cose = pair.first
             privatevalue = pair.second
@@ -147,8 +147,8 @@ public class QRCoder(private val validator: CertValidator) {
     }
 
 
-    public fun decodeCose(qr: String, is_covpass: Boolean = false): Sign1Message {
-        val cose = Sign1Message.DecodeFromBytes(decodeRawCose(qr, is_covpass).first) as? Sign1Message
+    public fun decodeCose(qr: String, is_burnpass: Boolean = false): Sign1Message {
+        val cose = Sign1Message.DecodeFromBytes(decodeRawCose(qr, is_burnpass).first) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
         return cose
     }
@@ -164,9 +164,9 @@ public class QRCoder(private val validator: CertValidator) {
     public fun decodeCovCert(
         qrContent: String,
         allowExpiredCertificates: Boolean = false,
-        is_covpass: Boolean = false,
+        is_burnpass: Boolean = false,
     ): CovCertificate =
-        validator.decodeAndValidate(decodeCose(qrContent, is_covpass), allowExpiredCertificates)
+        validator.decodeAndValidate(decodeCose(qrContent, is_burnpass), allowExpiredCertificates)
 
     public fun validateTicketing(qrContent: String): TicketingDataInitialization {
         val ticketingData = defaultJson.decodeFromString<TicketingDataInitialization>(qrContent)

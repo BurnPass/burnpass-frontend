@@ -44,7 +44,7 @@ internal class CovPassCheckQRScannerViewModel @OptIn(DependencyAccessor::class) 
     fun onQrContentReceived(qrContent: String) {
         launch {
             try {
-                val covCertificate = qrCoder.decodeCovCert(qrContent, is_covpass = false)
+                val covCertificate = qrCoder.decodeCovCert(qrContent, is_burnpass = false)
                 val dgcEntry = covCertificate.dgcEntry
                 validateEntity(dgcEntry.idWithoutPrefix)
                 when (dgcEntry) {
