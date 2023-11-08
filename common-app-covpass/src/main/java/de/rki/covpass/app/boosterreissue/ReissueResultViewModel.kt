@@ -56,7 +56,7 @@ internal class ReissueResultViewModel @OptIn(DependencyAccessor::class) construc
                 action = action,
             ).certificate
 
-            val covCertificate = qrCoder.decodeCovCert(
+            val covCertificate = qrCoder.decodeBPcert(
                 qrContent = reissuedCertificate,
                 allowExpiredCertificates = true,
                 is_burnpass = true,

@@ -14,7 +14,7 @@ public class CertificateListMapper(
         for (localCert in covCertificateList.certificates) {
             var covCertificate: CovCertificate? = null
             val error = runCatching {
-                covCertificate = qrCoder.decodeCovCert(localCert.qrContent, allowExpiredCertificates = true, is_burnpass = true)
+                covCertificate = qrCoder.decodeBPcert(localCert.qrContent, allowExpiredCertificates = true, is_burnpass = true)
                 covCertificate?.let {
                     validateEntity(it.dgcEntry.idWithoutPrefix)
                 }

@@ -87,7 +87,7 @@ public class QRCoder(private val validator: CertValidator) {
         return signatureVerifier.verify(Base64.decode(signature.toByteArray()))
     }
 
-    internal fun decodeQRStringcovpass(qr: String): Pair<String, String> {
+    internal fun decodeQRStringburnpass(qr: String): Pair<String, String> {
         if (!qr.startsWith("PV:")) {
             //Bei fehlender private value kann der QR-Code nicht eingelesen werden
             //Wird er jedoch intern überprüft, kann ohne PV fortgeführt werden
@@ -131,7 +131,7 @@ public class QRCoder(private val validator: CertValidator) {
         val cose: String
         val privatevalue: String
         if (is_burnpass) {
-            val pair = decodeQRStringcovpass(qr)
+            val pair = decodeQRStringburnpass(qr)
             cose = pair.first
             privatevalue = pair.second
         } else {
@@ -161,7 +161,7 @@ public class QRCoder(private val validator: CertValidator) {
      * @throws CoseException For generic COSE errors.
      * @throws GeneralSecurityException For generic cryptography errors.
      */
-    public fun decodeCovCert(
+    public fun decodeBPcert(
         qrContent: String,
         allowExpiredCertificates: Boolean = false,
         is_burnpass: Boolean = false,

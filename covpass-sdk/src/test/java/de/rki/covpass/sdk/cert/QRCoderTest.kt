@@ -38,7 +38,7 @@ internal class QRCoderTest : BaseSdkTest() {
 
     @Test
     fun `expired certificate`() {
-        assertFailsWith<ExpiredCwtException> { qrCoder.decodeCovCert(data) }
+        assertFailsWith<ExpiredCwtException> { qrCoder.decodeBPcert(data) }
     }
 
     @Test

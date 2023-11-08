@@ -547,7 +547,7 @@ internal class GroupedCertificateListTest : CoroutineTest() {
                 certComplete3.toCombinedCertLocal()
             )
         )
-        every { qrCoder.decodeCovCert(any()) } throws BlacklistedEntityException()
+        every { qrCoder.decodeBPcert(any()) } throws BlacklistedEntityException()
         val groupedCertificatesList = mapper.toGroupedCertificatesList(originalList)
 
         assertEquals(
@@ -565,7 +565,7 @@ internal class GroupedCertificateListTest : CoroutineTest() {
                 certComplete3.toCombinedCertLocal()
             )
         )
-        every { qrCoder.decodeCovCert("certComplete1") } throws BlacklistedEntityException()
+        every { qrCoder.decodeBPcert("certComplete1") } throws BlacklistedEntityException()
         val groupedCertificatesList = mapper.toGroupedCertificatesList(originalList)
 
         assertEquals(
