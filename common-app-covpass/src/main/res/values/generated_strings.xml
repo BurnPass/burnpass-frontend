@@ -4,7 +4,7 @@
 <!-- Language: en -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources">
 	<!-- SECTION: app -->
-	<string name="cert_app_name">CovPass</string>
+	<string name="cert_app_name">BurnPass</string>
 
 	<!-- SECTION: common -->
 	<string name="ok">OK</string>
@@ -12,7 +12,7 @@
 	<string name="cancel">Cancel</string>
 
 	<!-- SECTION: onboarding -->
-	<string name="start_onboarding_title">Welcome to the CovPass app</string>
+	<string name="start_onboarding_title">Welcome to the BurnPass app</string>
 	<string name="start_onboarding_message">Show your EU Digital COVID Certificates from your smartphone with ease.</string>
 	<string name="start_onboarding_secure_title">Absolute security for your data</string>
 	<string name="start_onboarding_secure_message">Your data is stored in one place: locally on your smartphone. You decide when you show your data and who you show it to.</string>
@@ -67,7 +67,7 @@
 	<string name="certificates_start_screen_qrcode_certificate_expired_subtitle">Expired</string>
 	<string name="certificates_start_screen_qrcode_certificate_invalid_subtitle">Invalid</string>
 	<string name="vaccination_start_screen_qrcode_booster_vaccination_note_subtitle">Check status</string>
-	<string name="certificates_start_screen_qr_code_app_reference_text">This QR code can be reliably verified with the CovPassCheck app.</string>
+	<string name="certificates_start_screen_qr_code_app_reference_text">This QR code can be reliably verified with the BurnPassCheck app.</string>
 
 	<!-- SECTION: modal_view -->
 	<string name="modal_subline">%d certificate(s) currently in use</string>
@@ -82,7 +82,7 @@
 	<string name="certificates_start_screen_pop_up_app_reference_button">OK</string>
 	<string name="certificate_type_partial">Not fully vaccinated</string>
 	<string name="certificate_type_recovery">Recovery</string>
-	<string name="certificate_type_basic_immunisation">Basic immunisation</string>
+	<string name="certificate_type_basic_immunisation">Valid certificate</string>
 	<string name="certificate_type_booster">Booster vaccination</string>
 	<string name="certificate_type_rapidtest">Antigen rapid test</string>
 	<string name="certificate_type_pcrtest">PCR test</string>
@@ -371,10 +371,10 @@
 	<string name="vaccination_certificate_overview_incomplete_title">Not fully vaccinated</string>
 	<string name="vaccination_certificate_overview_incomplete_message">You are not fully vaccinated. To use this QR code as proof of completed vaccination, you will need to add another vaccine dose.</string>
 	<string name="vaccination_certificate_detail_view_incomplete_action_button_title">Show certificates</string>
-	<string name="vaccination_certificate_overview_complete_from_title">Basic immunisation</string>
+	<string name="vaccination_certificate_overview_complete_from_title">Valid certificate</string>
 	<string name="vaccination_certificate_overview_complete_from_message">You are not yet considered fully vaccinated. Full vaccination takes effect 14 days after the final dose.</string>
-	<string name="vaccination_certificate_overview_complete_title">Basic immunisation</string>
-	<string name="certificates_overview_qr_scan_hint">This QR code can be reliably verified with the CovPassCheck app.</string>
+	<string name="vaccination_certificate_overview_complete_title">Valid certificate</string>
+	<string name="certificates_overview_qr_scan_hint">This QR code can be reliably verified with the BurnPassCheck app.</string>
 	<string name="vaccination_certificate_overview_complete_message">Show this QR code when needed. Be ready to show ID when your QR code is checked.</string>
 	<string name="vaccination_certificate_overview_complete_action_button_title">Show certificates</string>
 	<string name="vaccination_certificate_overview_booster_vaccination_notification_icon_new">New</string>

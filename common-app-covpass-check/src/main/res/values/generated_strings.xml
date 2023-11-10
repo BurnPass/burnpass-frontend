@@ -170,7 +170,7 @@
 	<string name="result_2G_invalid_subtitle">Show details</string>
 	<string name="result_2G_empty_subtitle">Not checked yet</string>
 	<string name="result_2G_2nd_recovery_valid">Recovery</string>
-	<string name="result_2G_2nd_basic_valid">Basic immunisation</string>
+	<string name="result_2G_2nd_basic_valid">Valid certificate</string>
 	<string name="result_2G_2nd_booster_valid">Booster vaccination</string>
 	<string name="result_2G_2nd_rapidtest_valid">Negative rapid test</string>
 	<string name="result_2G_2nd_pcrtest_valid">Negative PCR test</string>
