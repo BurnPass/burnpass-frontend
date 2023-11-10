@@ -40,6 +40,7 @@ import java.util.Locale
 
 public class QRCoder(private val validator: CertValidator) {
 
+    //recreates the public key from the COSE message
     internal fun recreatePublicKey(encoded_cose: ByteArray): PublicKey {
         val cose = Sign1Message.DecodeFromBytes(encoded_cose) as? Sign1Message
             ?: throw CoseException("Not a cose-sign1 message")
@@ -52,6 +53,7 @@ public class QRCoder(private val validator: CertValidator) {
         return kf.generatePublic(keySpec)
     }
 
+    //recreates the private key from the private value and the public key
     internal fun recreatePrivateKey(user_public_key: PublicKey, private_value: String): PrivateKey {
         val private_value_int = BigInteger(private_value)
         val kf = KeyFactory.getInstance("ECDSA")
@@ -62,7 +64,7 @@ public class QRCoder(private val validator: CertValidator) {
         return kf.generatePrivate(priv_spec)
     }
 
-    public fun extractUserKeys(qr: String): PrivateKey {
+    public fun extractUserKeys(qr: String): PrivateKey { //extracts the private key from the QR-String
         val (encoded, privatevalue) = decodeRawCose(qr, true)
         if (privatevalue.equals("")) {
             throw IllegalArgumentException("Missing private value, is the correct QR-Code being scanned?")
@@ -72,6 +74,7 @@ public class QRCoder(private val validator: CertValidator) {
         return user_private_key
     }
 
+    //verifies the timestamp signature
     internal fun verify_signature(timestring: String, signature: String, encoded_cose_string: String): Boolean {
         val encoded_cose_byte = encoded_cose_string.removePrefix("BP1:").toByteArray()
         val encoded_cose: ByteArray
@@ -130,6 +133,7 @@ public class QRCoder(private val validator: CertValidator) {
     internal fun decodeRawCose(qr: String, is_burnpass: Boolean = false): Pair<ByteArray, String> {
         val cose: String
         val privatevalue: String
+        // different handling depend on the App
         if (is_burnpass) {
             val pair = decodeQRStringburnpass(qr)
             cose = pair.first
