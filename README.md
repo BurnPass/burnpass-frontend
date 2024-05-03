@@ -1,13 +1,12 @@
-# PG/BA Anmerkungen
-Die IP/DNS-Adresse muss in der App geändert werden.
-Geändert und genutzt wurde nur die demo Version, jedoch könnte man die gleichen Datein in der nicht-Demo Version ebenfalls ändern.
-An folgenden Stellen wurde die IP/DNS des Servers eingetragen:
+# Remarks for BurnPass
+The IP/DNS address of the backend has to be changed in the app.
+Only the demo version was changed and used, however the same file could be altered for the prod version.
+
+The following locations require attention:
 
 * covpass-sdk-demo/src/main/res/values/strings.xml (for DSA)
 * covpass-sdk-demo/build.gradle (for DSC)
-* covpass-sdk/src/main/java/de/rki/covpass/sdk/dependencies/SdkDependencies.kt (for dcc rules, zeile 219, dccRulesHost)
-
-Die neuste Version von Android Studio funktioniert vermutlich aufgrund des Kotlin plugins nicht, mit der "Chipmunk" version funktioniert es.
+* covpass-sdk/src/main/java/de/rki/covpass/sdk/dependencies/SdkDependencies.kt (for dcc rules, line 219, dccRulesHost)
 
 # android-covpass-app
 
